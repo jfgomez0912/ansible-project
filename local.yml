@@ -8,6 +8,7 @@
       package:
         name:
           - dconf-cli
+          - python3-psutil
           - htop
           - vim-nox
           - gpaste
