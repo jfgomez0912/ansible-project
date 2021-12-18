@@ -22,11 +22,13 @@
         group: root
 
     - name: set wallpaper
+      become_user: jfgomez
       dconf:
         key: "/org/gnome/desktop/background/picture-uri"
         value: "'file:///usr/share/backgrounds/spider-verse-wallpaper.jpg'"
 
     - name: set wallpaper position
+      become_user: jfgomez
       dconf:
         key: "/org/gnome/desktop/background/picture-options"
         value: "'zoom'"
