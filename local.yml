@@ -74,6 +74,10 @@
       apt:
         name: google-chrome-stable
 
+    - name: software | vscode | add repository key
+      apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+
     - name: software | vscode | add repository
       apt_repository:
         repo: "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
