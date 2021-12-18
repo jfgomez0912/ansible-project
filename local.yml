@@ -91,7 +91,7 @@
         name: code
 
     - name: software | spotify | install package
-      community.general.snap:
+      snap:
         name: spotify
 
     - name: software | terraform | install binary
