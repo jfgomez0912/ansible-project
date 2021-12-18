@@ -115,6 +115,13 @@
         group: root
 
     # Install Docker
+    - name: install docker
+      package:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+
     # Install AWS CLI
     # Install Postman
     # Install DBeaver
