@@ -115,8 +115,24 @@
         group: root
 
     # Install Docker
-    - name: install docker
-      package:
+    - name: software | docker | add repository key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+
+    - name: software | docker | add repository
+      apt_repository:
+        repo: "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+        filename: docker
+      register: docker_repo
+
+    - name: software | docker | update sources (repo added or changed)
+      apt:
+        update_cache: yes
+      changed_when: False
+      when: docker_repo.changed
+
+    - name: software | docker | install package
+      apt:
         name:
           - docker-ce
           - docker-ce-cli
