@@ -4,6 +4,11 @@
   become: true
 
   tasks:
-  - name: install VSCode
-    package:
-      name: code
+    - name: install essential packages
+      package:
+        name:
+          - htop
+          - vim-nox
+          - gpaste
+          - flameshot
+          - make
