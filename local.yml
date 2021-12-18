@@ -73,3 +73,17 @@
     - name: software | google-chrome | install package
       apt:
         name: google-chrome-stable
+
+    - name: software | spotify | install package
+      community.general.snap:
+        name:
+          - spotify
+
+    - name: software | terraform | install binary
+      unarchive:
+        src: https://releases.hashicorp.com/terraform/1.0.7/terraform_1.0.7_linux_amd64.zip
+        dest: /usr/local/bin
+        remote_src: yes
+        mode: 0755
+        owner: root
+        group: root
