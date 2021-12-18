@@ -4,6 +4,7 @@
   become: true
 
   tasks:
+    # Install essential packages
     - name: install essential packages
       package:
         name:
@@ -15,6 +16,7 @@
           - flameshot
           - make
 
+    # Configure wallpaper
     - name: copy wallpaper file
       copy:
         src: files/spider-verse-wallpaper.jpg
@@ -34,6 +36,7 @@
         key: "/org/gnome/desktop/background/picture-options"
         value: "'zoom'"
 
+    # Configure auto-provision for ansible runs
     - name: add ansible user
       user:
         name: velociraptor
@@ -54,6 +57,7 @@
         minute: "*/10"
         job: ansible-pull -o -U https://github.com/jfgomez0912/ansible_desktop.git
 
+    # Install Google Chrome
     - name: software | google-chrome | add repository key
       apt_key:
         url: https://dl-ssl.google.com/linux/linux_signing_key.pub
@@ -74,6 +78,7 @@
       apt:
         name: google-chrome-stable
 
+    # Install VSCode
     - name: software | vscode | add repository key
       apt_key:
         url: https://packages.microsoft.com/keys/microsoft.asc
@@ -94,10 +99,12 @@
       apt:
         name: code
 
+    # Install Spotify
     - name: software | spotify | install package
       snap:
         name: spotify
 
+    # Install Terraform
     - name: software | terraform | install binary
       unarchive:
         src: https://releases.hashicorp.com/terraform/1.0.7/terraform_1.0.7_linux_amd64.zip
