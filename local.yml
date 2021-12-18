@@ -113,3 +113,12 @@
         mode: 0755
         owner: root
         group: root
+
+    # Install Docker
+    # Install AWS CLI
+    # Install Postman
+    # Install DBeaver
+    # Define Start Menu Programs
+    # Create Key Shortcuts for GPaste and Super+E
+    # Set GPaste and Flamshor to run at start
+    # Customize terminal colors
