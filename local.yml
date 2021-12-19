@@ -160,6 +160,9 @@
       command: /tmp/aws/install
 
     # Install Postman
+    - name: software | postman | install package
+      snap:
+        name: postman
 
     # Define Start Menu Programs
     # Create Key Shortcuts for GPaste and Super+E
