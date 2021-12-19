@@ -193,11 +193,11 @@
         value: "['org.gnome.Nautilus.desktop', 'org.gnome.Terminal.desktop', 'google-chrome.desktop', 'code.desktop', 'dbeaver-ce_dbeaver-ce.desktop', 'postman_postman.desktop', 'org.remmina.Remmina.desktop', 'spotify_spotify.desktop']"
 
     # Key Bindings Settings
-    - name: gnome | keybindings | disable default toogle message tray key binding
-      gsetting:
-        user: jfgomez
-        settings:
-          org.gnome.shell.keybindings.toggle-message-tray: "@as []"
+    # - name: gnome | keybindings | disable default toogle message tray key binding
+    #   become_user: jfgomez
+    #   dconf:
+    #     key: "/org/gnome/settings-daemon/plugins/media-keys/toggle-message-tray"
+    #     value: "@as []"
 
     # Set GPaste and Flamshot to run at start
     # Customize terminal colors
