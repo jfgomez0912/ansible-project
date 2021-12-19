@@ -156,8 +156,8 @@
         src: /tmp/awscliv2.zip
         dest: /tmp
 
-    - name: software | aws-cli | unzip package
-      command: curl /tmp/aws/install
+    - name: software | aws-cli | install package
+      command: /tmp/aws/install
 
     # Install Postman
 
