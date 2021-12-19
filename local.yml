@@ -58,6 +58,12 @@
         minute: "*/10"
         job: ansible-pull -o -U https://github.com/jfgomez0912/ansible_desktop.git
 
+    # Installed packages
+    
+    - name: return information about installed packages
+      package_facts:
+        manager: auto
+
     # Install Google Chrome
     - name: software | google-chrome | add repository key
       apt_key:
@@ -150,14 +156,17 @@
       get_url:
         url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
         dest: /tmp/awscliv2.zip
+      when: "'aws-cli' in ansible_facts.packages"
 
     - name: software | aws-cli | unzip package
       unarchive:
         src: /tmp/awscliv2.zip
         dest: /tmp
+      when: "'aws-cli' in ansible_facts.packages"
 
     - name: software | aws-cli | install package
       command: /tmp/aws/install
+      when: "'aws-cli' in ansible_facts.packages"
 
     # Install Postman
     - name: software | postman | install package
