@@ -4,34 +4,47 @@
   become: true
 
   tasks:
-    # Install essential packages
-    - name: install essential packages
+    # Install utility packages
+    - name: system setup | utilities | install utility packages
       package:
+        state: latest
         name:
           - dconf-cli
           - python3-psutil
           - htop
           - vim-nox
           - curl
-          - gpaste
-          - flameshot
           - make
 
+    # Install GPaset
+    - name: software | gpaste | install package
+      package:
+        state: latest
+        name:
+          - gpaste
+
+    # Install Flameshor
+    - name: software | flameshot | install package
+      package:
+        state: latest
+        name:
+          - flameshot
+
     # Configure wallpaper
-    - name: copy wallpaper file
+    - name: gnome | appearance | copy wallpaper file
       copy:
         src: files/spider-verse-wallpaper.jpg
         dest: /usr/share/backgrounds/spider-verse-wallpaper.jpg
         owner: root
         group: root
 
-    - name: set wallpaper
+    - name: gnome | appearance | set wallpaper
       become_user: jfgomez
       dconf:
         key: "/org/gnome/desktop/background/picture-uri"
         value: "'file:///usr/share/backgrounds/spider-verse-wallpaper.jpg'"
 
-    - name: set wallpaper position
+    - name: gnome | appearance | set wallpaper position
       become_user: jfgomez
       dconf:
         key: "/org/gnome/desktop/background/picture-options"
@@ -59,7 +72,6 @@
         job: ansible-pull -o -U https://github.com/jfgomez0912/ansible_desktop.git
 
     # Installed packages
-    
     - name: return information about installed packages
       package_facts:
         manager: auto
@@ -173,7 +185,12 @@
       snap:
         name: postman
 
-    # Define Start Menu Programs
+    # Set favorite apps
+    - name: gnome | shell settings | set favorite apps
+      dconf:
+        key: "/org/gnome/shell/favorite-apps"
+        value: "['org.gnome.Nautilus.desktop', 'org.gnome.Terminal.desktop', 'google-chrome.desktop', 'code.desktop', 'dbeaver-ce_dbeaver-ce.desktop', 'postman_postman.desktop', 'org.remmina.Remmina.desktop', 'spotify_spotify.desktop']"
+
     # Create Key Shortcuts for GPaste and Super+E
     # Set GPaste and Flamshor to run at start
     # Customize terminal colors
