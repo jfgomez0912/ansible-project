@@ -154,10 +154,10 @@
     - name: software | aws-cli | unzip package
       unarchive:
         src: /tmp/awscliv2.zip
-        dest: /tmp/awscliv2
+        dest: /tmp
 
     - name: software | aws-cli | unzip package
-      command: curl /tmp/awscliv2/aws/install
+      command: curl /tmp/aws/install
 
     # Install Postman
 
