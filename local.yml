@@ -187,6 +187,7 @@
 
     # Set favorite apps
     - name: gnome | shell settings | set favorite apps
+      become_user: jfgomez
       dconf:
         key: "/org/gnome/shell/favorite-apps"
         value: "['org.gnome.Nautilus.desktop', 'org.gnome.Terminal.desktop', 'google-chrome.desktop', 'code.desktop', 'dbeaver-ce_dbeaver-ce.desktop', 'postman_postman.desktop', 'org.remmina.Remmina.desktop', 'spotify_spotify.desktop']"
