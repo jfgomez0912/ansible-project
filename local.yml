@@ -12,6 +12,7 @@
           - python3-psutil
           - htop
           - vim-nox
+          - curl
           - gpaste
           - flameshot
           - make
@@ -145,6 +146,19 @@
         name: dbeaver-ce
 
     # Install AWS CLI
+    - name: software | aws-cli | download package
+      get_url:
+        url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+        dest: /tmp/awscliv2.zip
+
+    - name: software | aws-cli | unzip package
+      unarchive:
+        src: /tmp/awscliv2.zip
+        dest: /tmp/awscliv2
+
+    - name: software | aws-cli | unzip package
+      command: curl /tmp/awscliv2/aws/install
+
     # Install Postman
 
     # Define Start Menu Programs
