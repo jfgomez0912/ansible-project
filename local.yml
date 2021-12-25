@@ -227,9 +227,9 @@
         key: "{{ item.key }}"
         value: "{{ item.value}}"
       with_items:
-        - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/name", value: "'Flameshot'" }
-        - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/binding", value: "'print'" }
-        - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/command", value: "'flameshot gui'" }
+        - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/name", value: "'Flameshot'" }
+        - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/binding", value: "'print'" }
+        - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/command", value: "'flameshot gui'" }
 
     # Set GPaste and Flamshot to run at start
     # Customize terminal colors
