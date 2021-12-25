@@ -197,7 +197,7 @@
       become_user: jfgomez
       dconf:
         key: "/org/gnome/shell/keybindings/toggle-message-tray"
-        value: "@as []"
+        value: "['<Super>m']"
 
     - name: gnome | keybindings | disable default screenshot keybinding
       become_user: jfgomez
@@ -219,7 +219,7 @@
       with_items:
         - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/name", value: "'GPaste'" }
         - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/binding", value: "'<Super>v'" }
-        - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/command", value: "'gpaste-client'" }
+        - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/command", value: "'gpaste-client ui'" }
 
     - name: gnome | keybindings | set Flameshot keybinding
       become_user: jfgomez
