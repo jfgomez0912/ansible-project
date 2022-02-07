@@ -23,7 +23,6 @@
       package:
         state: latest
         name:
-          - python3-psutil
           - htop
           - vim-nox
           - curl
