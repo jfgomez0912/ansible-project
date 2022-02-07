@@ -24,7 +24,6 @@
         state: latest
         name:
           - htop
-          - vim-nox
           - curl
           - make
       when: ansible_distribution in ["MacOSX"]
