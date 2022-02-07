@@ -28,7 +28,7 @@
           - make
       when: ansible_distribution in ["MacOSX"]
 
-    # Install GPaset
+    # Install GPaste
     - name: software | gpaste | install package
       become_user: jfgomez
       package:
@@ -36,7 +36,7 @@
         name:
           - gpaste
 
-    # Install Flameshor
+    # Install Flameshot
     - name: software | flameshot | install package
       become_user: jfgomez
       package:
