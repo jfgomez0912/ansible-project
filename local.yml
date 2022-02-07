@@ -6,6 +6,7 @@
   tasks:
     # Install utility packages
     - name: system setup | utilities | install utility packages
+      become_user: jfgomez
       package:
         state: latest
         name:
@@ -18,6 +19,7 @@
 
     # Install GPaset
     - name: software | gpaste | install package
+      become_user: jfgomez
       package:
         state: latest
         name:
@@ -25,6 +27,7 @@
 
     # Install Flameshor
     - name: software | flameshot | install package
+      become_user: jfgomez
       package:
         state: latest
         name:
