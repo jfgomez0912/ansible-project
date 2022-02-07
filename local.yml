@@ -35,6 +35,7 @@
         state: latest
         name:
           - gpaste
+      when: ansible_distribution in ["Ubuntu"]
 
     # Install Flameshot
     - name: software | flameshot | install package
@@ -43,6 +44,7 @@
         state: latest
         name:
           - flameshot
+      when: ansible_distribution in ["Ubuntu"]
 
     # Configure wallpaper
     - name: gnome | appearance | copy wallpaper file
