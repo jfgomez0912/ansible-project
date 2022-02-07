@@ -16,6 +16,19 @@
           - vim-nox
           - curl
           - make
+      when: ansible_distribution in ["Ubuntu"]
+
+    - name: system setup | utilities | install utility packages
+      become_user: jfgomez
+      package:
+        state: latest
+        name:
+          - python3-psutil
+          - htop
+          - vim-nox
+          - curl
+          - make
+      when: ansible_distribution in ["MacOSX"]
 
     # Install GPaset
     - name: software | gpaste | install package
