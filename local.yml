@@ -53,12 +53,21 @@
         dest: /usr/share/backgrounds/spider-verse-wallpaper.jpg
         owner: root
         group: root
+      when: ansible_distribution in ["Ubuntu"]
+
+    - name: gnome | appearance | copy wallpaper file
+      copy:
+        src: files/spider-verse-wallpaper.jpg
+        dest: /System/Library/Desktop Pictures/spider-verse-wallpaper.jpg
+        owner: root
+        group: root
+      when: ansible_distribution in ["MacOSX"]
 
     - name: gnome | appearance | set wallpaper
       become_user: jfgomez
       dconf:
         key: "/org/gnome/desktop/background/picture-uri"
-        value: "'file:///usr/share/backgrounds/spider-verse-wallpaper.jpg'"
+        value: "'file:///System/Library/Desktop Pictures/spider-verse-wallpaper.jpg'"
 
     - name: gnome | appearance | set wallpaper position
       become_user: jfgomez
