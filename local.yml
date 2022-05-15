@@ -1,274 +1,332 @@
 ---
-- hosts: localhost
-  connection: local
+# tasks to complete before running roles
+- hosts: all
+  tags: always
   become: true
+  pre_tasks:
+    - name: pre-run | update package cache (arch)
+      tags: always
+      pacman: update_cache=yes
+      changed_when: False
+      when: ansible_distribution == "Archlinux"
 
+    - name: pre-run | update package cache (debian, etc)
+      tags: always
+      apt: update_cache=yes
+      changed_when: False
+      when: ansible_distribution in ["Debian", "Ubuntu"]
+
+# run roles
+- hosts: all
+  tags: base
+  become: true
+  roles:
+    - base
+
+- hosts: workstation
+  tags: workstation
+  become: true
+  roles:
+    - workstation
+
+# end of run cleanup and reporting
+- hosts: all
+  become: true
   tasks:
-    # Install utility packages
-    - name: system setup | utilities | install utility packages
-      become_user: jfgomez
-      package:
-        state: latest
-        name:
-          - dconf-cli
-          - python3-psutil
-          - htop
-          - vim-nox
-          - curl
-          - make
-      when: ansible_distribution in ["Ubuntu"]
+  - name: cleanup package cache (debian and ubuntu)
+    tags: always
+    apt:
+      autoclean: yes
+    changed_when: false
+    when: ansible_distribution in ["Debian", "Pop!_OS", "Ubuntu"]
 
-    - name: system setup | utilities | install utility packages
-      become_user: jfgomez
-      package:
-        state: latest
-        name:
-          - htop
-          - curl
-          - make
-      when: ansible_distribution in ["MacOSX"]
+  - name: autoremove orphan packages (debian and ubuntu)
+    tags: always
+    apt:
+      autoremove: yes
+      purge: yes
+    when: ansible_distribution in ["Debian", "Pop!_OS", "Ubuntu"]
 
-    # Install GPaste
-    - name: software | gpaste | install package
-      become_user: jfgomez
-      package:
-        state: latest
-        name:
-          - gpaste
-      when: ansible_distribution in ["Ubuntu"]
+  - name: send completion alert
+    include_tasks: playbooks/send_completion_alert.yml
+    tags: always
+    when:
+      - task_failed is not defined
 
-    # Install Flameshot
-    - name: software | flameshot | install package
-      become_user: jfgomez
-      package:
-        state: latest
-        name:
-          - flameshot
-      when: ansible_distribution in ["Ubuntu"]
+  - name: send failure alert
+    include_tasks: playbooks/send_failure_alert.yml
+    tags: always
+    when:
+      - task_failed is defined
+      - task_failed == true
 
-    # Configure wallpaper
-    - name: gnome | appearance | copy wallpaper file
-      copy:
-        src: files/spider-verse-wallpaper.jpg
-        dest: /usr/share/backgrounds/spider-verse-wallpaper.jpg
-        owner: root
-        group: root
-      when: ansible_distribution in ["Ubuntu"]
+# TODO: reorganize tasks in its respective roles
+tasks:
+  # Install utility packages
+  - name: system setup | utilities | install utility packages
+    become_user: jfgomez
+    package:
+      state: latest
+      name:
+        - dconf-cli
+        - python3-psutil
+        - htop
+        - vim-nox
+        - curl
+        - make
+    when: ansible_distribution in ["Ubuntu"]
 
-    - name: gnome | appearance | copy wallpaper file
-      copy:
-        src: files/spider-verse-wallpaper.jpg
-        dest: /System/Library/Desktop Pictures/spider-verse-wallpaper.jpg
-        owner: root
-        group: root
-      when: ansible_distribution in ["MacOSX"]
+  - name: system setup | utilities | install utility packages
+    become_user: jfgomez
+    package:
+      state: latest
+      name:
+        - htop
+        - curl
+        - make
+    when: ansible_distribution in ["MacOSX"]
 
-    - name: gnome | appearance | set wallpaper
-      become_user: jfgomez
-      dconf:
-        key: "/org/gnome/desktop/background/picture-uri"
-        value: "'file:///System/Library/Desktop Pictures/spider-verse-wallpaper.jpg'"
+  # Install GPaste
+  - name: software | gpaste | install package
+    become_user: jfgomez
+    package:
+      state: latest
+      name:
+        - gpaste
+    when: ansible_distribution in ["Ubuntu"]
 
-    - name: gnome | appearance | set wallpaper position
-      become_user: jfgomez
-      dconf:
-        key: "/org/gnome/desktop/background/picture-options"
-        value: "'zoom'"
+  # Install Flameshot
+  - name: software | flameshot | install package
+    become_user: jfgomez
+    package:
+      state: latest
+      name:
+        - flameshot
+    when: ansible_distribution in ["Ubuntu"]
 
-    # Configure auto-provision for ansible runs
-    - name: add ansible user
-      user:
-        name: velociraptor
-        system: yes
+  # Configure wallpaper
+  - name: gnome | appearance | copy wallpaper file
+    copy:
+      src: files/spider-verse-wallpaper.jpg
+      dest: /usr/share/backgrounds/spider-verse-wallpaper.jpg
+      owner: root
+      group: root
+    when: ansible_distribution in ["Ubuntu"]
 
-    - name: set up sudo for ansible user
-      copy:
-        src: files/sudoer_velociraptor
-        dest: /etc/sudoers.d/velociraptor
-        owner: root
-        group: root
-        mode: 0440
+  - name: gnome | appearance | copy wallpaper file
+    copy:
+      src: files/spider-verse-wallpaper.jpg
+      dest: /System/Library/Desktop Pictures/spider-verse-wallpaper.jpg
+      owner: root
+      group: root
+    when: ansible_distribution in ["MacOSX"]
 
-    - name: add ansible-pull cron job
-      cron:
-        name: ansible auto-provision
-        user: velociraptor
-        minute: "*/10"
-        job: ansible-pull -o -U https://github.com/jfgomez0912/ansible_desktop.git
+  - name: gnome | appearance | set wallpaper
+    become_user: jfgomez
+    dconf:
+      key: "/org/gnome/desktop/background/picture-uri"
+      value: "'file:///System/Library/Desktop Pictures/spider-verse-wallpaper.jpg'"
 
-    # Installed packages
-    - name: return information about installed packages
-      package_facts:
-        manager: auto
+  - name: gnome | appearance | set wallpaper position
+    become_user: jfgomez
+    dconf:
+      key: "/org/gnome/desktop/background/picture-options"
+      value: "'zoom'"
 
-    # Install Google Chrome
-    - name: software | google-chrome | add repository key
-      apt_key:
-        url: https://dl-ssl.google.com/linux/linux_signing_key.pub
+  # Configure auto-provision for ansible runs
+  - name: add ansible user
+    user:
+      name: velociraptor
+      system: yes
 
-    - name: software | google-chrome | add repository
-      apt_repository:
-        repo: "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main"
-        filename: google-chrome
-      register: chrome_repo
+  - name: set up sudo for ansible user
+    copy:
+      src: files/sudoer_velociraptor
+      dest: /etc/sudoers.d/velociraptor
+      owner: root
+      group: root
+      mode: 0440
 
-    - name: software | google-chrome | update sources (repo added or changed)
-      apt:
-        update_cache: yes
-      changed_when: False
-      when: chrome_repo.changed
+  - name: add ansible-pull cron job
+    cron:
+      name: ansible auto-provision
+      user: velociraptor
+      minute: "*/10"
+      job: ansible-pull -o -U https://github.com/jfgomez0912/ansible_desktop.git
 
-    - name: software | google-chrome | install package
-      apt:
-        name: google-chrome-stable
+  # Installed packages
+  - name: return information about installed packages
+    package_facts:
+      manager: auto
 
-    # Install VSCode
-    - name: software | vscode | add repository key
-      apt_key:
-        url: https://packages.microsoft.com/keys/microsoft.asc
+  # Install Google Chrome
+  - name: software | google-chrome | add repository key
+    apt_key:
+      url: https://dl-ssl.google.com/linux/linux_signing_key.pub
 
-    - name: software | vscode | add repository
-      apt_repository:
-        repo: "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
-        filename: vscode
-      register: vscode_repo
+  - name: software | google-chrome | add repository
+    apt_repository:
+      repo: "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main"
+      filename: google-chrome
+    register: chrome_repo
 
-    - name: software | vscode | update sources (repo added or changed)
-      apt:
-        update_cache: yes
-      changed_when: False
-      when: vscode_repo.changed
+  - name: software | google-chrome | update sources (repo added or changed)
+    apt:
+      update_cache: yes
+    changed_when: False
+    when: chrome_repo.changed
 
-    - name: software | vscode | install package
-      apt:
-        name: code
+  - name: software | google-chrome | install package
+    apt:
+      name: google-chrome-stable
 
-    # Install Spotify
-    - name: software | spotify | install package
-      snap:
-        name: spotify
+  # Install VSCode
+  - name: software | vscode | add repository key
+    apt_key:
+      url: https://packages.microsoft.com/keys/microsoft.asc
 
-    # Install Terraform
-    - name: software | terraform | install binary
-      unarchive:
-        src: https://releases.hashicorp.com/terraform/1.0.7/terraform_1.0.7_linux_amd64.zip
-        dest: /usr/local/bin
-        remote_src: yes
-        mode: 0755
-        owner: root
-        group: root
+  - name: software | vscode | add repository
+    apt_repository:
+      repo: "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
+      filename: vscode
+    register: vscode_repo
 
-    # Install Docker
-    - name: software | docker | add repository key
-      apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        keyring: /usr/share/keyrings/docker-archive-keyring.gpg
+  - name: software | vscode | update sources (repo added or changed)
+    apt:
+      update_cache: yes
+    changed_when: False
+    when: vscode_repo.changed
 
-    - name: software | docker | add repository
-      apt_repository:
-        repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu focal stable"
-        filename: docker
-      register: docker_repo
+  - name: software | vscode | install package
+    apt:
+      name: code
 
-    - name: software | docker | update sources (repo added or changed)
-      apt:
-        update_cache: yes
-      changed_when: False
-      when: docker_repo.changed
+  # Install Spotify
+  - name: software | spotify | install package
+    snap:
+      name: spotify
 
-    - name: software | docker | install package
-      apt:
-        name:
-          - docker-ce
-          - docker-ce-cli
-          - containerd.io
+  # Install Terraform
+  - name: software | terraform | install binary
+    unarchive:
+      src: https://releases.hashicorp.com/terraform/1.0.7/terraform_1.0.7_linux_amd64.zip
+      dest: /usr/local/bin
+      remote_src: yes
+      mode: 0755
+      owner: root
+      group: root
 
-    # Install DBeaver
-    - name: software | dbeaver-ce | install package
-      snap:
-        name: dbeaver-ce
+  # Install Docker
+  - name: software | docker | add repository key
+    apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      keyring: /usr/share/keyrings/docker-archive-keyring.gpg
 
-    # Install AWS CLI
-    - name: software | aws-cli | download package
-      get_url:
-        url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
-        dest: /tmp/awscliv2.zip
-      when: "'aws-cli' in ansible_facts.packages"
+  - name: software | docker | add repository
+    apt_repository:
+      repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu focal stable"
+      filename: docker
+    register: docker_repo
 
-    - name: software | aws-cli | unzip package
-      unarchive:
-        src: /tmp/awscliv2.zip
-        dest: /tmp
-      when: "'aws-cli' in ansible_facts.packages"
+  - name: software | docker | update sources (repo added or changed)
+    apt:
+      update_cache: yes
+    changed_when: False
+    when: docker_repo.changed
 
-    - name: software | aws-cli | install package
-      command: /tmp/aws/install
-      when: "'aws-cli' in ansible_facts.packages"
+  - name: software | docker | install package
+    apt:
+      name:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
 
-    # Install Postman
-    - name: software | postman | install package
-      snap:
-        name: postman
+  # Install DBeaver
+  - name: software | dbeaver-ce | install package
+    snap:
+      name: dbeaver-ce
 
-    # Set favorite apps
-    - name: gnome | shell settings | set favorite apps
-      become_user: jfgomez
-      dconf:
-        key: "/org/gnome/shell/favorite-apps"
-        value: "['org.gnome.Nautilus.desktop', 'org.gnome.Terminal.desktop', 'google-chrome.desktop', 'code.desktop', 'dbeaver-ce_dbeaver-ce.desktop', 'postman_postman.desktop', 'org.remmina.Remmina.desktop', 'spotify_spotify.desktop']"
+  # Install AWS CLI
+  - name: software | aws-cli | download package
+    get_url:
+      url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+      dest: /tmp/awscliv2.zip
+    when: "'aws-cli' in ansible_facts.packages"
 
-    # Key Bindings Settings
-    - name: gnome | keybindings | disable default toogle message tray keybinding
-      become_user: jfgomez
-      dconf:
-        key: "/org/gnome/shell/keybindings/toggle-message-tray"
-        value: "['<Super>m']"
+  - name: software | aws-cli | unzip package
+    unarchive:
+      src: /tmp/awscliv2.zip
+      dest: /tmp
+    when: "'aws-cli' in ansible_facts.packages"
 
-    - name: gnome | keybindings | disable default screenshot keybinding
-      become_user: jfgomez
-      dconf:
-        key: "/org/gnome/settings-daemon/plugins/media-keys/screenshot"
-        value: "@as []"
+  - name: software | aws-cli | install package
+    command: /tmp/aws/install
+    when: "'aws-cli' in ansible_facts.packages"
 
-    - name: gnome | keybindings | set custom-keybindings
-      become_user: jfgomez
-      dconf:
-        key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings"
-        value: "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/']"
+  # Install Postman
+  - name: software | postman | install package
+    snap:
+      name: postman
 
-    - name: gnome | keybindings | set GPaste keybinding
-      become_user: jfgomez
-      dconf:
-        key: "{{ item.key }}"
-        value: "{{ item.value}}"
-      with_items:
-        - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/name", value: "'GPaste'" }
-        - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/binding", value: "'<Super>v'" }
-        - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/command", value: "'gpaste-client ui'" }
+  # Set favorite apps
+  - name: gnome | shell settings | set favorite apps
+    become_user: jfgomez
+    dconf:
+      key: "/org/gnome/shell/favorite-apps"
+      value: "['org.gnome.Nautilus.desktop', 'org.gnome.Terminal.desktop', 'google-chrome.desktop', 'code.desktop', 'dbeaver-ce_dbeaver-ce.desktop', 'postman_postman.desktop', 'org.remmina.Remmina.desktop', 'spotify_spotify.desktop']"
 
-    - name: gnome | keybindings | set Flameshot keybinding
-      become_user: jfgomez
-      dconf:
-        key: "{{ item.key }}"
-        value: "{{ item.value}}"
-      with_items:
-        - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/name", value: "'Flameshot'" }
-        - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/binding", value: "'print'" }
-        - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/command", value: "'flameshot gui'" }
+  # Key Bindings Settings
+  - name: gnome | keybindings | disable default toogle message tray keybinding
+    become_user: jfgomez
+    dconf:
+      key: "/org/gnome/shell/keybindings/toggle-message-tray"
+      value: "['<Super>m']"
 
-    # Terminal Settings
-    - name: gnome | terminal | set terminal configuration
-      become_user: jfgomez
-      dconf:
-        key: "/org/gnome/terminal/legacy/profiles:/:b1dcc9dd-5262-4d8d-a863-c897e6d979b9/{{ item.key }}"
-        value: "{{ item.value}}"
-      with_items:
-        - { key: background-color, value: "'rgb(0,43,54)'" }
-        - { key: default-size-columns, value: "120" }
-        - { key: foreground-color, value: "'rgb(131,148,150)'" }
-        - { key: scrollback-unlimited, value: "true" }
-        - { key: scrollbar-policy, value: "'never'" }
-        - { key: use-system-font, value: "false" }
-        - { key: use-theme-colors, value: "false" }
-        - { key: visible-name, value: "'Main'" }
-        - { key: font, value: "'Ubuntu Mono Regular 15'" }
+  - name: gnome | keybindings | disable default screenshot keybinding
+    become_user: jfgomez
+    dconf:
+      key: "/org/gnome/settings-daemon/plugins/media-keys/screenshot"
+      value: "@as []"
+
+  - name: gnome | keybindings | set custom-keybindings
+    become_user: jfgomez
+    dconf:
+      key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings"
+      value: "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/']"
+
+  - name: gnome | keybindings | set GPaste keybinding
+    become_user: jfgomez
+    dconf:
+      key: "{{ item.key }}"
+      value: "{{ item.value}}"
+    with_items:
+      - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/name", value: "'GPaste'" }
+      - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/binding", value: "'<Super>v'" }
+      - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/command", value: "'gpaste-client ui'" }
+
+  - name: gnome | keybindings | set Flameshot keybinding
+    become_user: jfgomez
+    dconf:
+      key: "{{ item.key }}"
+      value: "{{ item.value}}"
+    with_items:
+      - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/name", value: "'Flameshot'" }
+      - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/binding", value: "'print'" }
+      - { key: "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/command", value: "'flameshot gui'" }
+
+  # Terminal Settings
+  - name: gnome | terminal | set terminal configuration
+    become_user: jfgomez
+    dconf:
+      key: "/org/gnome/terminal/legacy/profiles:/:b1dcc9dd-5262-4d8d-a863-c897e6d979b9/{{ item.key }}"
+      value: "{{ item.value}}"
+    with_items:
+      - { key: background-color, value: "'rgb(0,43,54)'" }
+      - { key: default-size-columns, value: "120" }
+      - { key: foreground-color, value: "'rgb(131,148,150)'" }
+      - { key: scrollback-unlimited, value: "true" }
+      - { key: scrollbar-policy, value: "'never'" }
+      - { key: use-system-font, value: "false" }
+      - { key: use-theme-colors, value: "false" }
+      - { key: visible-name, value: "'Main'" }
+      - { key: font, value: "'Ubuntu Mono Regular 15'" }
